@@ -3,9 +3,10 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import * as courseActions from '../../actions/courseActions';
 import CourseForm from './CourseForm';
+import {authorsFormattedForDropdown} from '../../selectors/selectors';
 import toastr from 'toastr';
 
-class ManageCoursePage extends React.Component {
+export class ManageCoursePage extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -17,6 +18,7 @@ class ManageCoursePage extends React.Component {
 
     this.updateCourseState = this.updateCourseState.bind(this);
     this.saveCourse = this.saveCourse.bind(this);
+    this.courseFormIsValid = this.courseFormIsValid.bind(this);
   }
 
   // using lifecycle method to update state
@@ -36,8 +38,26 @@ class ManageCoursePage extends React.Component {
     return this.setState({course: course});
   }
 
+  courseFormIsValid() {
+    let formIsValid = true;
+    let errors = {};
+
+    if (this.state.course.title.length < 5) {
+      errors.title = 'Title must be at least 5 characters.';
+      formIsValid = false;
+    }
+
+    this.setState({errors: errors});
+    return formIsValid;
+  }
+
   saveCourse(event) {
     event.preventDefault();
+
+    if(!this.courseFormIsValid()) {
+      return;
+    }
+
     this.setState({saving: true});
     // until saveCourse promise is resolved we
     // won't get redirected to all courses list page
@@ -90,28 +110,14 @@ function getCourseById(courses, id) {
 function mapStateToProps(state, ownProps) {
   // getting id from path `/course/:id`
   const courseId = ownProps.params.id;
-  let course = {
-    id: '',
-    watchHref: '',
-    title: '',
-    authorId: '',
-    length: '',
-    category: ''
-  };
+  let course = {id: '', watchHref: '', title: '', authorId: '', length: '', category: ''};
   if (courseId && state.courses.length > 0) {
     course = getCourseById(state.courses, courseId);
   }
 
-  const authorsFormattedForDropdown = state.authors.map(author => {
-    return {
-      value: author.id,
-      text: author.firstName + ' ' + author.lastName
-    };
-  });
-
   return {
     course: course,
-    authors: authorsFormattedForDropdown
+    authors: authorsFormattedForDropdown(state.authors)
   };
 }
 
