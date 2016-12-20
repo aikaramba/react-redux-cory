@@ -71,7 +71,7 @@ export class ManageCoursePage extends React.Component {
 
   redirect() {
     this.setState({saving: false});
-    toastr.success('Coarse saved');
+    toastr.success('Course saved');
     this.context.router.push('/courses');
   }
 
